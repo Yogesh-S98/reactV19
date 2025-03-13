@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import Table from "./agGrid";
+import Table from "./table";
 import { Button, Modal, Spin, Form, Row, Col, Input } from "antd";
 import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
 // import { Col, Form } from "react-bootstrap";
