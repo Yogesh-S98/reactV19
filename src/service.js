@@ -13,12 +13,6 @@ export const create = async (data) => {
     return result.data;
 }
 
-export const login = async (data) => {
-    const api = 'https://reqres.in/api/login';
-    const result =  await axios.post(api, data);
-    return result;
-}
-
 const main = axios.create({
     baseURL: 'http://98.80.114.52:8080/',
     headers: {
@@ -41,6 +35,12 @@ const handleErrors = (error) => {
         errorMessage("An unexpected error occurred.");
     }
 };
+
+export const login = async (data) => {
+    const api = 'auth/login';
+    const result =  await main.post(api, data);
+    return result;
+}
 
 export const getList = async (page) => {
     try {

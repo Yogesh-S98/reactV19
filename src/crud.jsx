@@ -1,14 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Table from "./table";
-import { Button, Modal, Spin, Form, Row, Col, Input } from "antd";
-import { EditOutlined, DeleteOutlined, ExclamationCircleFilled } from '@ant-design/icons';
+import { Button, Modal, Form, Row, Col, Input } from "antd";
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { DataContext } from "./userContext";
 // import { Col, Form } from "react-bootstrap";
-import { createUser, deleteUser, getList, updateUser } from "./service";
-import { useLoading } from "./loader";
-import { useNotification } from "./notification";
 
 
-function Crud() {
+function UsersList() {
     const userObj = {
         id: null,
         firstName: '',
@@ -17,23 +15,15 @@ function Crud() {
         phoneNumber: '',
         isAdmin: false
     };
+    const { items, metaData, addItem, updateItem, deleteItem, actionFromTable } = useContext(DataContext);
     const [form] = Form.useForm();
     const [isEdited, setIsEdited] = useState(false);
-    const { showNotification } = useNotification();
     const [modal, contextHolder] = Modal.useModal();
-    const [data, setData] = useState([]);
     const [userModel, setUserModel] = useState(false);
     const [loading, setLoading] = useState(false);
     // const [userForm, setUserForm] = useState(userObj);
     // const [errors, setErrors] = useState(userObj);
     const [title, setTitle] = useState('');
-    const { showLoading, hideLoading }= useLoading();
-    const [pagination] = useState({
-        current: 1,
-        pageSize: 7,
-        total: 0,
-    });
-    const [metaData, setMetaData] = useState({});
 
     const confirm = (row) => {
         modal.confirm({
@@ -46,62 +36,23 @@ function Crud() {
             okButtonProps: { loading: loading },
             onOk() {
                 setLoading(true);
-                deleteUser(row.id).then((res) => {
-                    if (res) {
-                        setLoading(false);
-                        loadList();
-                    }
-                })
+                const result = deleteItem(row.id);
+                if (result) {
+                    setLoading(false);
+                } else {
+                    setLoading(false);
+                }
             },
             onCancel() {
                 return true;
             }
         });
     };
-    // const fetch = useRef(false);
-    // useEffect(() => {
-    //     // if (fetch.current) return;
-    //     // fetch.current = true;
-    //     loadList();
-    // }, []);
 
-    // const loadList() {
-    //     getList().then((res) => {
-    //         if (res) {
-    //             setData(res.data?.data?.response);
-    //         }
-    //     })
-    // }
-
-    const loadList = async () => {
-        showLoading();
-        try {
-            const page = {
-                pageIndex: pagination.current - 1,
-                pageSize: pagination.pageSize
-            }
-            // console.log('aaa', page);
-            const res = await getList(page);
-            if (res) {
-                setData(res.data?.data?.response);
-                const setPage = {
-                    current: res.data?.data?.metaData.pageNumber + 1,
-                    pageSize: res.data?.data?.metaData.pageSize,
-                    total: res.data?.data?.metaData.totalRecords,
-                };
-                console.log('meta', setPage);
-                setMetaData(setPage);
-                hideLoading();
-            }
-        } catch (error) {
-            hideLoading();
-            console.error('Error fetching data:', error);
-        }
-    };
     // Use useEffect to call loadList when the component mounts
     useEffect(() => {
         form.setFieldsValue();
-        loadList();
+        // loadList();
     }, []);
     
     
@@ -142,8 +93,8 @@ function Crud() {
         setIsEdited(false);
         setTitle('Update User');
         // await form.setFieldsValue(userObj);
-        await form.setFieldsValue(userObj);
-        await form.setFieldsValue(row);
+        form.setFieldsValue(userObj);
+        form.setFieldsValue(row);
         console.log('ddd', form.getFieldsValue(true));
         // setErrors(userObj);
     };
@@ -162,12 +113,6 @@ function Crud() {
         setUserModel(true);
     }
 
-    // const handleChange = (e) => {
-    //     const { name, value } = e.target;
-    //     setUserForm({ ...userForm, [name]: value });
-    //     setErrors({ ...errors, [name]: '' });
-    // }
-
     const submitForm = async (e) => {
         e.preventDefault();
         try {
@@ -176,43 +121,31 @@ function Crud() {
             console.log('dddd', form.getFieldsValue(true))
             setLoading(true);
             if (form.getFieldsValue(true).id) {
-                updateUser(form.getFieldsValue(true)).then((res) => {
-                    console.log('dd', res);
-                    if (res) {
-                        // successNotification(res?.data?.data?.message);
-                        showNotification("success", '', res.data?.message);
-                        setUserModel(false);
-                        setLoading(false);
-                        // setErrors(userObj);
-                        loadList();
-                    }
-                })
+                const value = await updateItem(form.getFieldsValue(true));
+                if (value) {
+                    setUserModel(false);
+                    setLoading(false);
+                } else {
+                    setLoading(false);
+                }
             } else {
-                createUser(form.getFieldsValue(true)).then((res) => {
-                    console.log('ddfda', res);
-                    if (res) {
-                        showNotification("success", '', res.data?.message);
-                        setUserModel(false);
-                        setLoading(false);
-                        // setErrors(userObj);
-                        loadList();
-                    } else {
-                        setLoading(false);
-                    }
-                })
+                const value = await addItem(form.getFieldsValue(true));
+                console.log('value', value);
+                if (value) {
+                    setUserModel(false);
+                    setLoading(false);
+                    // setErrors(userObj);
+                } else {
+                    setLoading(false);
+                }
             }
         } catch (error) {
             console.log('error', error);
         }
     }
-    const actionFromTable = async (val) => {
-        pagination.current = val.current;
-        pagination.pageSize = val.pageSize;
-        loadList();
-    }
 
     return (
-        <div className="p-5">
+        <div className="p-5 main-container">
             <>
                 <div className="p-2 d-flex justify-content-between">
                     <div>
@@ -224,13 +157,12 @@ function Crud() {
                     pagination={metaData}
                     handleTable={actionFromTable}
                     columns={columns}
-                    data={data}>
+                    data={items}>
                 </Table>
             </>
             <Modal
                 title={title}
                 open={userModel}
-                okText={form.getFieldsValue(true).id ? 'Update' : 'Create'}
                 onCancel={() => setUserModel(false)}
                 centered
                 footer={null}
@@ -304,4 +236,4 @@ function Crud() {
     )
 }
 
-export default Crud;
+export default UsersList;
