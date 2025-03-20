@@ -14,4 +14,16 @@ code {
 a {
   text-decoration: none !important;
 }
+.main-container {
+  height: 93.100vh;
+  background: var(--app-bg-color, #ffffff);
+  color: var(--app-text-color, #000000) !important;
+}
+.ant-menu-dark .ant-menu-item-selected {
+  background-color: transparent !important; /* Remove background */
+}
 
+/* Change text color of selected menu item */
+.ant-menu-dark .ant-menu-item-selected a {
+  color: white !important; /* Change to custom color (blue) */
+}
